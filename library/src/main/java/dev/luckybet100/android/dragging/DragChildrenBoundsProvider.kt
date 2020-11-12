@@ -8,5 +8,7 @@ interface DragChildrenBoundsProvider {
 
     fun children(): Sequence<ChildDescription>
     fun translate(index: Int, dx: Int, dy: Int)
+    fun scale(index: Int, scale: Float)
+    fun rotate(index: Int, rotation: Float)
 
 }

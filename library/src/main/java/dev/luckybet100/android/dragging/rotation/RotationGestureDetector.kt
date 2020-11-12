@@ -9,8 +9,8 @@ class RotationGestureDetector(private val listener: OnRotationGestureListener) {
 
     interface OnRotationGestureListener {
 
-        fun onRotationBegin(rotationDetector: RotationGestureDetector)
-        fun onRotation(rotationDetector: RotationGestureDetector)
+        fun onRotationBegin(detector: RotationGestureDetector)
+        fun onRotation(detector: RotationGestureDetector)
 
     }
 

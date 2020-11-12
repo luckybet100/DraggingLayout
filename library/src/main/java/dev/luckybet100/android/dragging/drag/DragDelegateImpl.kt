@@ -13,10 +13,9 @@ class DragDelegateImpl(
         for ((index, child) in childrenDelegate.children().withIndex()) {
             if (child.rect.contains(x, y)) {
                 state = DragDelegate.State.Dragging(x, y, index)
-                return true
             }
         }
-        return false
+        return state != DragDelegate.State.Idle
     }
 
     override fun update(x: Int, y: Int): Boolean {

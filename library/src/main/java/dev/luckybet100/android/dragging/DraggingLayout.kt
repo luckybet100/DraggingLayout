@@ -5,6 +5,7 @@ import android.graphics.Rect
 import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.ScaleGestureDetector
+import android.view.View
 import android.widget.FrameLayout
 import androidx.core.view.children
 import dev.luckybet100.android.dragging.drag.DragDelegate
@@ -14,7 +15,7 @@ import dev.luckybet100.android.dragging.utils.getPointerPosition
 import kotlin.math.max
 import kotlin.math.min
 
-class DraggingLayout : FrameLayout {
+open class DraggingLayout : FrameLayout {
 
     constructor(context: Context) : super(context)
     constructor(context: Context, attrs: AttributeSet?) : super(context, attrs)
@@ -24,20 +25,41 @@ class DraggingLayout : FrameLayout {
         defStyleAttr
     )
 
+    fun notifyItemsChanged() {
+        dragDelegate.end()
+    }
+
+    val draggingElementIndex: Int
+        get() = dragDelegate.getDraggingIndex()
+
+    fun children(): Sequence<DragChildrenBoundsProvider.ChildDescription> = children.map {
+        val rect = Rect()
+        it.getHitRect(rect)
+        DragChildrenBoundsProvider.ChildDescription(rect)
+    }
+
     private val boundsProvider: DragChildrenBoundsProvider = object : DragChildrenBoundsProvider {
 
         override fun children(): Sequence<DragChildrenBoundsProvider.ChildDescription> =
-            children.map {
-                val rect = Rect()
-                it.getHitRect(rect)
-                DragChildrenBoundsProvider.ChildDescription(rect)
-            }
+            this@DraggingLayout.children()
 
         override fun translate(index: Int, dx: Int, dy: Int) {
-            getChildAt(index).left += dx
-            getChildAt(index).right += dx
-            getChildAt(index).top += dy
-            getChildAt(index).bottom += dy
+            assert(index in 0..childCount)
+            getChildAt(index).x += dx
+            getChildAt(index).y += dy
+            invalidate()
+        }
+
+        override fun scale(index: Int, scale: Float) {
+            assert(index in 0..childCount)
+            getChildAt(index).scaleX = scale
+            getChildAt(index).scaleY = scale
+            invalidate()
+        }
+
+        override fun rotate(index: Int, rotation: Float) {
+            assert(index in 0..childCount)
+            getChildAt(index).rotation = rotation
             invalidate()
         }
     }
@@ -68,8 +90,7 @@ class DraggingLayout : FrameLayout {
             assert(index in 0..childCount)
             scaleFactor *= detector.scaleFactor
             scaleFactor = max(0.2f, min(scaleFactor, 10.0f))
-            getChildAt(index).scaleX = scaleFactor
-            getChildAt(index).scaleY = scaleFactor
+            boundsProvider.scale(index, scaleFactor)
             invalidate()
             return true
         }
@@ -80,7 +101,7 @@ class DraggingLayout : FrameLayout {
 
         private var angle = 0f
 
-        override fun onRotationBegin(rotationDetector: RotationGestureDetector) {
+        override fun onRotationBegin(detector: RotationGestureDetector) {
             val index = dragDelegate.getDraggingIndex()
             if (index == -1) {
                 return
@@ -95,50 +116,55 @@ class DraggingLayout : FrameLayout {
                 return
             }
             assert(index in 0..childCount)
-            getChildAt(index).rotation = angle + detector.angle
-            invalidate()
+            boundsProvider.rotate(index, angle + detector.angle)
         }
     }
 
     private val scaleDetector = ScaleGestureDetector(context, scaleListener)
     private val rotationDetector = RotationGestureDetector(rotationListener)
 
-    init {
-        setOnTouchListener { _, motionEvent ->
+    protected val touchListener = object : OnTouchListener {
+
+        override fun onTouch(view: View, motionEvent: MotionEvent): Boolean {
             scaleDetector.onTouchEvent(motionEvent)
             rotationDetector.onTouchEvent(motionEvent)
             when (motionEvent.action) {
                 MotionEvent.ACTION_DOWN -> {
-                    try {
+                    return try {
                         val (actionX, actionY) = getPointerPosition(motionEvent, 0)
-                        return@setOnTouchListener dragDelegate.start(
+                        dragDelegate.start(
                             actionX.toInt(),
                             actionY.toInt()
                         )
                     } catch (exception: IllegalArgumentException) {
-                        return@setOnTouchListener false
+                        false
                     }
                 }
                 MotionEvent.ACTION_MOVE -> {
-                    try {
+                    return try {
                         val (actionX, actionY) = getPointerPosition(motionEvent, 0)
-                        return@setOnTouchListener dragDelegate.update(
+                        dragDelegate.update(
                             actionX.toInt(),
                             actionY.toInt()
                         )
                     } catch (exception: IllegalArgumentException) {
-                        return@setOnTouchListener false
+                        false
                     }
                 }
                 MotionEvent.ACTION_UP -> {
-                    return@setOnTouchListener dragDelegate.end()
+                    return dragDelegate.end()
                 }
                 MotionEvent.ACTION_CANCEL -> {
-                    return@setOnTouchListener dragDelegate.end()
+                    return dragDelegate.end()
                 }
             }
-            false
+            return false
         }
+
+    }
+
+    init {
+        setOnTouchListener(touchListener)
     }
 
 }

@@ -1,3 +1,3 @@
 rootProject.name='DraggingLayout'
-include ':app'
-include ':dragging'
+include ':sample'
+include ':library'

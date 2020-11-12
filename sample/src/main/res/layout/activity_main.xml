@@ -1,14 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
-<dev.luckybet100.android.dragging.DraggingLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<dev.luckybet100.android.dragging.DragAndRemoveLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="#000000"
     tools:context="dev.luckybet100.android.example.MainActivity">
 
     <View
         android:layout_width="50dp"
         android:layout_height="50dp"
-        android:background="#000000" />
+        android:background="#FFFFFF" />
 
     <View
         android:layout_width="50dp"
@@ -25,4 +26,4 @@
         android:background="#FFFF00" />
 
 
-</dev.luckybet100.android.dragging.DraggingLayout>
+</dev.luckybet100.android.dragging.DragAndRemoveLayout>
