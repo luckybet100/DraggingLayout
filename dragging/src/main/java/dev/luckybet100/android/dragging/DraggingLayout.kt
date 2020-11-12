@@ -9,7 +9,8 @@ import android.widget.FrameLayout
 import androidx.core.view.children
 import dev.luckybet100.android.dragging.drag.DragDelegate
 import dev.luckybet100.android.dragging.drag.DragDelegateImpl
-import dev.luckybet100.android.dragging.utils.getMainPointerPosition
+import dev.luckybet100.android.dragging.rotation.RotationGestureDetector
+import dev.luckybet100.android.dragging.utils.getPointerPosition
 import kotlin.math.max
 import kotlin.math.min
 
@@ -66,7 +67,7 @@ class DraggingLayout : FrameLayout {
             }
             assert(index in 0..childCount)
             scaleFactor *= detector.scaleFactor
-            scaleFactor = max(0.1f, min(scaleFactor, 5.0f))
+            scaleFactor = max(0.2f, min(scaleFactor, 10.0f))
             getChildAt(index).scaleX = scaleFactor
             getChildAt(index).scaleY = scaleFactor
             invalidate()
@@ -75,30 +76,64 @@ class DraggingLayout : FrameLayout {
 
     }
 
-    private val scaleDetector = ScaleGestureDetector(context, scaleListener)
+    private val rotationListener = object : RotationGestureDetector.OnRotationGestureListener {
 
+        private var angle = 0f
+
+        override fun onRotationBegin(rotationDetector: RotationGestureDetector) {
+            val index = dragDelegate.getDraggingIndex()
+            if (index == -1) {
+                return
+            }
+            assert(index in 0..childCount)
+            angle = getChildAt(index).rotation
+        }
+
+        override fun onRotation(detector: RotationGestureDetector) {
+            val index = dragDelegate.getDraggingIndex()
+            if (index == -1) {
+                return
+            }
+            assert(index in 0..childCount)
+            getChildAt(index).rotation = angle + detector.angle
+            invalidate()
+        }
+    }
+
+    private val scaleDetector = ScaleGestureDetector(context, scaleListener)
+    private val rotationDetector = RotationGestureDetector(rotationListener)
 
     init {
         setOnTouchListener { _, motionEvent ->
             scaleDetector.onTouchEvent(motionEvent)
+            rotationDetector.onTouchEvent(motionEvent)
             when (motionEvent.action) {
                 MotionEvent.ACTION_DOWN -> {
                     try {
-                        val (actionX, actionY) = getMainPointerPosition(motionEvent)
-                        return@setOnTouchListener dragDelegate.start(actionX, actionY)
+                        val (actionX, actionY) = getPointerPosition(motionEvent, 0)
+                        return@setOnTouchListener dragDelegate.start(
+                            actionX.toInt(),
+                            actionY.toInt()
+                        )
                     } catch (exception: IllegalArgumentException) {
                         return@setOnTouchListener false
                     }
                 }
                 MotionEvent.ACTION_MOVE -> {
                     try {
-                        val (actionX, actionY) = getMainPointerPosition(motionEvent)
-                        return@setOnTouchListener dragDelegate.update(actionX, actionY)
+                        val (actionX, actionY) = getPointerPosition(motionEvent, 0)
+                        return@setOnTouchListener dragDelegate.update(
+                            actionX.toInt(),
+                            actionY.toInt()
+                        )
                     } catch (exception: IllegalArgumentException) {
                         return@setOnTouchListener false
                     }
                 }
                 MotionEvent.ACTION_UP -> {
+                    return@setOnTouchListener dragDelegate.end()
+                }
+                MotionEvent.ACTION_CANCEL -> {
                     return@setOnTouchListener dragDelegate.end()
                 }
             }
