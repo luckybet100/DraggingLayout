@@ -7,6 +7,6 @@ interface DragChildrenBoundsProvider {
     data class ChildDescription(val rect: Rect)
 
     fun children(): Sequence<ChildDescription>
-    fun updateChild(index: Int, description: ChildDescription)
+    fun translate(index: Int, dx: Int, dy: Int)
 
 }

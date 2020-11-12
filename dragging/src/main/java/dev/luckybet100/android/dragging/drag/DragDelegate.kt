@@ -11,16 +11,16 @@ interface DragDelegate {
         data class Dragging(
             val startX: Int,
             val startY: Int,
-            val index: Int,
-            val child: DragChildrenBoundsProvider.ChildDescription
+            val index: Int
         ) : State()
 
     }
 
     val childrenDelegate: DragChildrenBoundsProvider
 
+    fun getDraggingIndex(): Int
     fun start(x: Int, y: Int): Boolean
     fun update(x: Int, y: Int): Boolean
-    fun end()
+    fun end(): Boolean
 
 }
