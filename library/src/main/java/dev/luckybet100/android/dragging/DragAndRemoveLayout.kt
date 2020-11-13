@@ -5,6 +5,7 @@ import android.content.Context
 import android.graphics.*
 import android.util.AttributeSet
 import android.view.MotionEvent
+import android.view.View
 import dev.luckybet100.android.dragging.utils.distance2
 import dev.luckybet100.android.dragging.utils.dp
 import dev.luckybet100.android.dragging.utils.loadBitmap
@@ -117,41 +118,36 @@ class DragAndRemoveLayout : DraggingLayout {
         }
     }
 
-    init {
-
-        setOnTouchListener { view, motionEvent ->
-            val dragIndex = super.draggingElementIndex
-            val result = super.touchListener.onTouch(view, motionEvent)
-            if (dragIndex != -1) {
-                val (x, y) = motionEvent.x to motionEvent.y
-                val trashPosition = PointF(width / 2f, height - trashRadius * 2f)
-                when (motionEvent.action) {
-                    MotionEvent.ACTION_MOVE -> {
-                        if (distance2(PointF(x, y), trashPosition) <= trashRadius * trashRadius) {
-                            showSelectedArea()
-                        } else {
-                            hideSelectedArea()
-                        }
+    override fun onTouch(view: View, motionEvent: MotionEvent): Boolean {
+        val dragIndex = super.draggingElementIndex
+        val result = super.onTouch(view, motionEvent)
+        if (dragIndex != -1) {
+            val (x, y) = motionEvent.x to motionEvent.y
+            val trashPosition = PointF(width / 2f, height - trashRadius * 2f)
+            when (motionEvent.action) {
+                MotionEvent.ACTION_MOVE -> {
+                    if (distance2(PointF(x, y), trashPosition) <= trashRadius * trashRadius) {
+                        showSelectedArea()
+                    } else {
+                        hideSelectedArea()
                     }
-                    MotionEvent.ACTION_UP -> {
-                        if (distance2(PointF(x, y), trashPosition) <= trashRadius * trashRadius) {
-                            assert(dragIndex in 0..childCount)
-                            getChildAt(dragIndex).animate().alpha(0f).withEndAction {
-                                removeViewAt(dragIndex)
-                                notifyItemsChanged()
-                            }.scaleX(0f).scaleY(0f).apply {
-                                duration = 300
-                            }.start()
-                            hideSelectedArea()
-                        }
-                    }
-                    MotionEvent.ACTION_CANCEL -> hideSelectedArea()
                 }
+                MotionEvent.ACTION_UP -> {
+                    if (distance2(PointF(x, y), trashPosition) <= trashRadius * trashRadius) {
+                        assert(dragIndex in 0..childCount)
+                        getChildAt(dragIndex).animate().alpha(0f).withEndAction {
+                            removeViewAt(dragIndex)
+                            notifyItemsChanged()
+                        }.scaleX(0f).scaleY(0f).apply {
+                            duration = 300
+                        }.start()
+                        hideSelectedArea()
+                    }
+                }
+                MotionEvent.ACTION_CANCEL -> hideSelectedArea()
             }
-
-            return@setOnTouchListener result
         }
-
+        return result
     }
 
 }

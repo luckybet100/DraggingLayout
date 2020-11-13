@@ -15,7 +15,7 @@ import dev.luckybet100.android.dragging.utils.getPointerPosition
 import kotlin.math.max
 import kotlin.math.min
 
-open class DraggingLayout : FrameLayout {
+open class DraggingLayout : FrameLayout, View.OnTouchListener {
 
     constructor(context: Context) : super(context)
     constructor(context: Context, attrs: AttributeSet?) : super(context, attrs)
@@ -125,48 +125,42 @@ open class DraggingLayout : FrameLayout {
     private val scaleDetector = ScaleGestureDetector(context, scaleListener)
     private val rotationDetector = RotationGestureDetector(rotationListener)
 
-    protected val touchListener = object : OnTouchListener {
-
-        override fun onTouch(view: View, motionEvent: MotionEvent): Boolean {
-            scaleDetector.onTouchEvent(motionEvent)
-            rotationDetector.onTouchEvent(motionEvent)
-            when (motionEvent.action) {
-                MotionEvent.ACTION_DOWN -> {
-                    return try {
-                        val (actionX, actionY) = getPointerPosition(motionEvent, 0)
-                        dragDelegate.start(
-                            actionX.toInt(),
-                            actionY.toInt()
-                        )
-                    } catch (exception: IllegalArgumentException) {
-                        false
-                    }
-                }
-                MotionEvent.ACTION_MOVE -> {
-                    return try {
-                        val (actionX, actionY) = getPointerPosition(motionEvent, 0)
-                        dragDelegate.update(
-                            actionX.toInt(),
-                            actionY.toInt()
-                        )
-                    } catch (exception: IllegalArgumentException) {
-                        false
-                    }
-                }
-                MotionEvent.ACTION_UP -> {
-                    return dragDelegate.end()
-                }
-                MotionEvent.ACTION_CANCEL -> {
-                    return dragDelegate.end()
+    override fun onTouch(view: View, motionEvent: MotionEvent): Boolean {
+        scaleDetector.onTouchEvent(motionEvent)
+        rotationDetector.onTouchEvent(motionEvent)
+        when (motionEvent.action) {
+            MotionEvent.ACTION_DOWN -> {
+                return try {
+                    val (actionX, actionY) = getPointerPosition(motionEvent, 0)
+                    dragDelegate.start(
+                        actionX.toInt(),
+                        actionY.toInt()
+                    )
+                } catch (exception: IllegalArgumentException) {
+                    false
                 }
             }
-            return false
+            MotionEvent.ACTION_MOVE -> {
+                return try {
+                    val (actionX, actionY) = getPointerPosition(motionEvent, 0)
+                    dragDelegate.update(
+                        actionX.toInt(),
+                        actionY.toInt()
+                    )
+                } catch (exception: IllegalArgumentException) {
+                    false
+                }
+            }
+            MotionEvent.ACTION_UP -> {
+                return dragDelegate.end()
+            }
+            MotionEvent.ACTION_CANCEL -> {
+                return dragDelegate.end()
+            }
         }
-
+        return false
     }
 
-    init {
-        setOnTouchListener(touchListener)
-    }
+    init { setOnTouchListener(this) }
 
 }
