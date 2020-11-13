@@ -7,20 +7,20 @@
     tools:context="dev.luckybet100.android.example.MainActivity">
 
     <View
-        android:layout_width="50dp"
-        android:layout_height="50dp"
+        android:layout_width="150dp"
+        android:layout_height="70dp"
         android:background="#FFFFFF" />
 
     <View
-        android:layout_width="50dp"
-        android:layout_height="50dp"
+        android:layout_width="150dp"
+        android:layout_height="70dp"
         android:layout_marginLeft="100dp"
         android:layout_marginTop="100dp"
         android:background="#FF0000" />
 
     <View
-        android:layout_width="50dp"
-        android:layout_height="50dp"
+        android:layout_width="150dp"
+        android:layout_height="70dp"
         android:layout_marginLeft="200dp"
         android:layout_marginTop="200dp"
         android:background="#FFFF00" />

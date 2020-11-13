@@ -20,8 +20,15 @@ class RotationGestureDetector(private val listener: OnRotationGestureListener) {
     private var sy = 0f
     private var pointerIndex1: Int = INVALID_POINTER_ID
     private var pointerIndex2: Int = INVALID_POINTER_ID
+
     var angle = 0f
         private set
+
+    val focusX: Float
+        get() = (fx + sx) / 2f
+
+    val focusY: Float
+        get() = (fy + sy) / 2f
 
     fun onTouchEvent(event: MotionEvent) {
         when (event.actionMasked) {

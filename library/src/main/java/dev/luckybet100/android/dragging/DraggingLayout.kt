@@ -50,14 +50,16 @@ open class DraggingLayout : FrameLayout {
             invalidate()
         }
 
-        override fun scale(index: Int, scale: Float) {
+        override fun scale(index: Int, scale: Float, pivotX: Float, pivotY: Float) {
             assert(index in 0..childCount)
-            getChildAt(index).scaleX = scale
-            getChildAt(index).scaleY = scale
+            with(getChildAt(index)) {
+                scaleX = scale
+                scaleY = scale
+            }
             invalidate()
         }
 
-        override fun rotate(index: Int, rotation: Float) {
+        override fun rotate(index: Int, rotation: Float, pivotX: Float, pivotY: Float) {
             assert(index in 0..childCount)
             getChildAt(index).rotation = rotation
             invalidate()
@@ -90,7 +92,7 @@ open class DraggingLayout : FrameLayout {
             assert(index in 0..childCount)
             scaleFactor *= detector.scaleFactor
             scaleFactor = max(0.2f, min(scaleFactor, 10.0f))
-            boundsProvider.scale(index, scaleFactor)
+            boundsProvider.scale(index, scaleFactor, detector.focusX, detector.focusY)
             invalidate()
             return true
         }
@@ -116,7 +118,7 @@ open class DraggingLayout : FrameLayout {
                 return
             }
             assert(index in 0..childCount)
-            boundsProvider.rotate(index, angle + detector.angle)
+            boundsProvider.rotate(index, angle + detector.angle, detector.focusX, detector.focusY)
         }
     }
 
