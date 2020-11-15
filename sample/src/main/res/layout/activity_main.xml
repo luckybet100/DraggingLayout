@@ -1,29 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <dev.luckybet100.android.dragging.DragAndRemoveLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#000000"
     tools:context="dev.luckybet100.android.example.MainActivity">
 
-    <View
+    <dev.luckybet100.android.progress.CircleClockProgressView
         android:layout_width="150dp"
-        android:layout_height="70dp"
-        android:background="#FFFFFF" />
-
-    <View
-        android:layout_width="150dp"
-        android:layout_height="70dp"
-        android:layout_marginLeft="100dp"
-        android:layout_marginTop="100dp"
-        android:background="#FF0000" />
-
-    <View
-        android:layout_width="150dp"
-        android:layout_height="70dp"
-        android:layout_marginLeft="200dp"
-        android:layout_marginTop="200dp"
-        android:background="#FFFF00" />
-
+        android:layout_height="150dp"
+        android:layout_gravity="center"
+        app:color="#FF0000"
+        app:progress="0.75"
+        app:strokeWidth="5dp" />
 
 </dev.luckybet100.android.dragging.DragAndRemoveLayout>
