@@ -4,12 +4,19 @@ import android.content.Context
 import android.content.res.Resources
 import android.graphics.Bitmap
 import android.graphics.Canvas
+import android.graphics.Matrix
 import android.graphics.PointF
 import android.util.DisplayMetrics
+import android.util.Log
 import android.util.TypedValue
 import android.view.MotionEvent
+import android.view.View
+import android.view.ViewParent
+import java.lang.Math.sqrt
+import java.lang.Math.toDegrees
 import kotlin.math.atan2
 import kotlin.math.round
+import kotlin.math.sign
 
 fun getPointerPosition(motionEvent: MotionEvent, index: Int): Pair<Float, Float> {
     val pointerIndex = motionEvent.findPointerIndex(index)
@@ -55,3 +62,31 @@ fun loadBitmap(resources: Resources, resId: Int): Bitmap {
 }
 
 fun distance2(a: PointF, b: PointF) = (a.x - b.x) * (a.x - b.x) + (a.y - b.y) * (a.y - b.y)
+
+fun View.setMatrix(matrix: Matrix) {
+    val values = FloatArray(9)
+    matrix.getValues(values)
+    val translateX = values[Matrix.MTRANS_X]
+    val translateY = values[Matrix.MTRANS_Y]
+    val s1 = sign(values[Matrix.MSCALE_X]) // TODO not supported yet
+    val s2 = sign(values[Matrix.MSCALE_Y]) // TODO not supported yet
+    val scaleX = sqrt((values[Matrix.MSCALE_X] * values[Matrix.MSCALE_X] + values[Matrix.MSKEW_X] * values[Matrix.MSKEW_X]).toDouble())
+    val scaleY = sqrt((values[Matrix.MSCALE_Y] * values[Matrix.MSCALE_Y] + values[Matrix.MSKEW_Y] * values[Matrix.MSKEW_Y]).toDouble())
+    val rotation = atan2(values[Matrix.MSKEW_Y].toDouble(), values[Matrix.MSCALE_Y].toDouble())
+    translationX = translateX
+    translationY = translateY
+    this.rotation = toDegrees(rotation).toFloat()
+    this.scaleX = scaleX.toFloat()
+    this.scaleY = scaleY.toFloat()
+}
+
+fun View.globalMatrix(matrix: Matrix) {
+    val parent: ViewParent = parent
+    if (parent is View) {
+        val vp = parent as View
+        vp.globalMatrix(matrix)
+        matrix.preTranslate(-vp.scrollX.toFloat(), -vp.scrollY.toFloat())
+    }
+    matrix.preTranslate(left.toFloat(), top.toFloat())
+    matrix.preConcat(getMatrix())
+}

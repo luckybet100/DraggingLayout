@@ -1,6 +1,7 @@
 package dev.luckybet100.android.dragging
 
 import android.content.Context
+import android.graphics.Matrix
 import android.graphics.Rect
 import android.util.AttributeSet
 import android.view.MotionEvent
@@ -10,8 +11,9 @@ import android.widget.FrameLayout
 import androidx.core.view.children
 import dev.luckybet100.android.dragging.drag.DragDelegate
 import dev.luckybet100.android.dragging.drag.DragDelegateImpl
-import dev.luckybet100.android.dragging.rotation.RotationGestureDetector
+import dev.luckybet100.android.dragging.rotation.MatrixGestureDetector
 import dev.luckybet100.android.dragging.utils.getPointerPosition
+import dev.luckybet100.android.dragging.utils.setMatrix
 import kotlin.math.max
 import kotlin.math.min
 
@@ -64,6 +66,12 @@ open class DraggingLayout : FrameLayout, View.OnTouchListener {
             getChildAt(index).rotation = rotation
             invalidate()
         }
+
+        override fun setMatrix(index: Int, matrix: Matrix) {
+            assert(index in 0..childCount)
+            getChildAt(index).setMatrix(matrix)
+            invalidate()
+        }
     }
 
     private val dragDelegate: DragDelegate =
@@ -99,35 +107,46 @@ open class DraggingLayout : FrameLayout, View.OnTouchListener {
 
     }
 
-    private val rotationListener = object : RotationGestureDetector.OnRotationGestureListener {
+    private val matrixListener = object : MatrixGestureDetector.OnRotationGestureListener {
 
-        private var angle = 0f
+        private val tempMatrix = Matrix()
 
-        override fun onRotationBegin(detector: RotationGestureDetector) {
+        override fun onRotationBegin(detector: MatrixGestureDetector) {
             val index = dragDelegate.getDraggingIndex()
             if (index == -1) {
                 return
             }
             assert(index in 0..childCount)
-            angle = getChildAt(index).rotation
+            val matrix = Matrix()
+            with(getChildAt(index)) {
+                tempMatrix.reset()
+                tempMatrix.preTranslate(-scrollX.toFloat(), -scrollY.toFloat())
+                tempMatrix.preTranslate(left.toFloat(), top.toFloat())
+                matrix.set(this.matrix)
+                tempMatrix.preConcat(matrix)
+            }
+            detector.originalMatrix = Matrix(tempMatrix)
+            detector.localMatrix = matrix
         }
 
-        override fun onRotation(detector: RotationGestureDetector) {
+        override fun onRotation(detector: MatrixGestureDetector) {
             val index = dragDelegate.getDraggingIndex()
             if (index == -1) {
                 return
             }
             assert(index in 0..childCount)
-            boundsProvider.rotate(index, angle + detector.angle, detector.focusX, detector.focusY)
+            tempMatrix.reset()
+            tempMatrix.setConcat(detector.localMatrix, detector.matrix)
+            boundsProvider.setMatrix(index, tempMatrix)
         }
     }
 
     private val scaleDetector = ScaleGestureDetector(context, scaleListener)
-    private val rotationDetector = RotationGestureDetector(rotationListener)
+    private val matrixDetector = MatrixGestureDetector(matrixListener)
 
     override fun onTouch(view: View, motionEvent: MotionEvent): Boolean {
         scaleDetector.onTouchEvent(motionEvent)
-        rotationDetector.onTouchEvent(motionEvent)
+        matrixDetector.onTouchEvent(motionEvent)
         when (motionEvent.action) {
             MotionEvent.ACTION_DOWN -> {
                 return try {
