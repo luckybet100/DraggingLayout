@@ -17,4 +17,19 @@
         app:progress="0.75"
         app:strokeWidth="5dp" />
 
+    <View
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:background="#FFFFFF"/>
+
+    <View
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:background="#FF00FF"/>
+
+    <View
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:background="#FF0000"/>
+
 </dev.luckybet100.android.dragging.DragAndRemoveLayout>

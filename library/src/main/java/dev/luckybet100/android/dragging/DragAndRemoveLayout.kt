@@ -135,13 +135,17 @@ class DragAndRemoveLayout : DraggingLayout {
                 MotionEvent.ACTION_UP -> {
                     if (distance2(PointF(x, y), trashPosition) <= trashRadius * trashRadius) {
                         assert(dragIndex in 0..childCount)
-                        getChildAt(dragIndex).animate().alpha(0f).withEndAction {
-                            removeViewAt(dragIndex)
-                            notifyItemsChanged()
-                        }.scaleX(0f).scaleY(0f).apply {
-                            duration = 300
-                        }.start()
-                        hideSelectedArea()
+                        getChildAt(dragIndex).apply {
+                            pivotX = width / 2f
+                            pivotY = height / 2f
+                            animate().alpha(0f).withEndAction {
+                                removeViewAt(dragIndex)
+                                notifyItemsChanged()
+                            }.scaleX(0f).scaleY(0f).apply {
+                                duration = 300
+                            }.start()
+                            hideSelectedArea()
+                        }
                     }
                 }
                 MotionEvent.ACTION_CANCEL -> hideSelectedArea()
