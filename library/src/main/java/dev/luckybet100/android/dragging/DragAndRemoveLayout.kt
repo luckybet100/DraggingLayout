@@ -29,10 +29,13 @@ class DragAndRemoveLayout : DraggingLayout {
     private val crossRect = Rect(0, 0, cross.width, cross.height)
 
     private var trashSelected = false
+    private var trashVisible = false
     private var trashAnimation: ValueAnimator? = null
+    private var showAnimation: ValueAnimator? = null
 
     private val trashStrokePaint = Paint().apply {
         color = Color.WHITE
+        alpha = 0
         style = Paint.Style.STROKE
         strokeWidth = trashStrokeWidth
     }
@@ -42,8 +45,7 @@ class DragAndRemoveLayout : DraggingLayout {
         style = Paint.Style.FILL
     }
 
-    override fun onDraw(canvas: Canvas) {
-        super.onDraw(canvas)
+    override fun dispatchDraw(canvas: Canvas) {
         canvas.drawCircle(
             width / 2f,
             height - trashRadius * 2f,
@@ -67,7 +69,9 @@ class DragAndRemoveLayout : DraggingLayout {
             ),
             trashStrokePaint
         )
+        super.dispatchDraw(canvas)
     }
+
 
     private fun showSelectedArea() {
         if (trashSelected) return
@@ -118,10 +122,40 @@ class DragAndRemoveLayout : DraggingLayout {
         }
     }
 
+    private fun showTrash() {
+        if (trashVisible) return
+        trashVisible = true
+        showAnimation?.cancel()
+        showAnimation = ValueAnimator.ofFloat(0f, 1f).apply {
+            addUpdateListener {
+                trashStrokePaint.alpha = (it.animatedFraction * 255).toInt()
+                invalidate()
+            }
+            duration = 300
+            start()
+        }
+    }
+
+    private fun hideTrash() {
+        if (!trashVisible) return
+        trashVisible = false
+        showAnimation?.cancel()
+        showAnimation = ValueAnimator.ofFloat(0f, 1f).apply {
+            addUpdateListener {
+                trashStrokePaint.alpha = ((1f - it.animatedFraction) * 255).toInt()
+                invalidate()
+            }
+            duration = 300
+            start()
+        }
+    }
+
+
     override fun onTouch(view: View, motionEvent: MotionEvent): Boolean {
         val dragIndex = super.draggingElementIndex
         val result = super.onTouch(view, motionEvent)
         if (dragIndex != -1) {
+            showTrash()
             val (x, y) = motionEvent.x to motionEvent.y
             val trashPosition = PointF(width / 2f, height - trashRadius * 2f)
             when (motionEvent.action) {
@@ -147,8 +181,12 @@ class DragAndRemoveLayout : DraggingLayout {
                             hideSelectedArea()
                         }
                     }
+                    hideTrash()
                 }
-                MotionEvent.ACTION_CANCEL -> hideSelectedArea()
+                MotionEvent.ACTION_CANCEL -> {
+                    hideSelectedArea()
+                    hideTrash()
+                }
             }
         }
         return result

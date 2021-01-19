@@ -19,6 +19,10 @@ import kotlin.math.min
 
 open class DraggingLayout : FrameLayout, View.OnTouchListener {
 
+    interface OnDragStartedListener {
+        fun onDragStarted(started: Boolean)
+    }
+
     constructor(context: Context) : super(context)
     constructor(context: Context, attrs: AttributeSet?) : super(context, attrs)
     constructor(context: Context, attrs: AttributeSet?, defStyleAttr: Int) : super(
@@ -26,6 +30,8 @@ open class DraggingLayout : FrameLayout, View.OnTouchListener {
         attrs,
         defStyleAttr
     )
+
+    var onDragStartedListener: OnDragStartedListener? = null
 
     fun notifyItemsChanged() {
         dragDelegate.end()
@@ -144,9 +150,15 @@ open class DraggingLayout : FrameLayout, View.OnTouchListener {
     private val scaleDetector = ScaleGestureDetector(context, scaleListener)
     private val matrixDetector = MatrixGestureDetector(matrixListener)
 
+    private var dragging = false
+
     override fun onTouch(view: View, motionEvent: MotionEvent): Boolean {
         scaleDetector.onTouchEvent(motionEvent)
         matrixDetector.onTouchEvent(motionEvent)
+        if (!dragging && dragDelegate.getDraggingIndex() != -1) {
+            dragging = true
+            onDragStartedListener?.onDragStarted(true)
+        }
         when (motionEvent.action) {
             MotionEvent.ACTION_DOWN -> {
                 return try {
@@ -171,9 +183,17 @@ open class DraggingLayout : FrameLayout, View.OnTouchListener {
                 }
             }
             MotionEvent.ACTION_UP -> {
+                if (dragging) {
+                    dragging = false
+                    onDragStartedListener?.onDragStarted(false)
+                }
                 return dragDelegate.end()
             }
             MotionEvent.ACTION_CANCEL -> {
+                if (dragging) {
+                    dragging = false
+                    onDragStartedListener?.onDragStarted(false)
+                }
                 return dragDelegate.end()
             }
         }
