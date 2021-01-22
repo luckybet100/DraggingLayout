@@ -155,11 +155,11 @@ class DragAndRemoveLayout : DraggingLayout {
         val dragIndex = super.draggingElementIndex
         val result = super.onTouch(view, motionEvent)
         if (dragIndex != -1) {
-            showTrash()
             val (x, y) = motionEvent.x to motionEvent.y
             val trashPosition = PointF(width / 2f, height - trashRadius * 2f)
             when (motionEvent.action) {
                 MotionEvent.ACTION_MOVE -> {
+                    showTrash()
                     if (distance2(PointF(x, y), trashPosition) <= trashRadius * trashRadius) {
                         showSelectedArea()
                     } else {
