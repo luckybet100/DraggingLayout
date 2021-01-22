@@ -155,10 +155,7 @@ open class DraggingLayout : FrameLayout, View.OnTouchListener {
     override fun onTouch(view: View, motionEvent: MotionEvent): Boolean {
         scaleDetector.onTouchEvent(motionEvent)
         matrixDetector.onTouchEvent(motionEvent)
-        if (!dragging && dragDelegate.getDraggingIndex() != -1) {
-            dragging = true
-            onDragStartedListener?.onDragStarted(true)
-        }
+
         when (motionEvent.action) {
             MotionEvent.ACTION_DOWN -> {
                 return try {
@@ -173,6 +170,10 @@ open class DraggingLayout : FrameLayout, View.OnTouchListener {
             }
             MotionEvent.ACTION_MOVE -> {
                 return try {
+                    if (!dragging && dragDelegate.getDraggingIndex() != -1) {
+                        dragging = true
+                        onDragStartedListener?.onDragStarted(true)
+                    }
                     val (actionX, actionY) = getPointerPosition(motionEvent, 0)
                     dragDelegate.update(
                         actionX.toInt(),
